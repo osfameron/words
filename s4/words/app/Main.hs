@@ -29,4 +29,4 @@ languages = [ "BASIC"
             ]
 
 main :: IO ()
-main = someFunc
+main = putStrLn $ formatGrid grid

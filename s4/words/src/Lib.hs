@@ -1,6 +1,9 @@
 module Lib
-    ( someFunc
+    ( Grid
+    , formatGrid
     ) where
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+type Grid = [String]
+
+formatGrid :: Grid -> String
+formatGrid = unlines
