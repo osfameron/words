@@ -3,7 +3,8 @@ import Lib
 import Data
 import Data.Maybe
 
-grid' = gridWithCoords grid
+game = makeGame grid languages
+grid' = gameGrid game
 
 main :: IO ()
 main = hspec $ do

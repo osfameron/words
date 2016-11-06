@@ -1,11 +1,16 @@
 module Lib
-    ( Grid
+    ( Game(Game, gameGrid, gameWords)
+    , makeGame
+    , score
+    , totalWords
+    , playWord
+    , Grid
+    , Cell(Cell)
     , formatGrid
     , findWord
     , findWordInLine
     , findWords
     , getLines
-    , Cell(Cell)
     , gridWithCoords
     , findWordInCellInfix
     , findWordInCellPrefix
@@ -14,11 +19,40 @@ module Lib
 
 import Data.List (isInfixOf, transpose)
 import Data.Maybe (catMaybes, listToMaybe)
+import qualified Data.Map as M
+
+data Game = Game { gameGrid  :: Grid Cell
+                 , gameWords :: M.Map String (Maybe [Cell])
+                 }
 
 type Grid a = [[a]]
 
 data Cell = Cell (Int, Int) Char | Empty
             deriving (Eq, Ord, Show)
+
+makeGame :: Grid Char -> [String] -> Game
+makeGame grid words =
+  let grid'  = gridWithCoords grid
+      words' = M.fromList $ map (\word -> (word, Nothing)) words
+  in Game grid' words'
+
+totalWords :: Game -> Int
+totalWords game = length $ M.keys (gameWords game)
+
+score :: Game -> Int
+score game = length $ catMaybes $ M.elems (gameWords game)
+
+playWord :: Game -> String -> Game
+playWord game word =
+  let grid = gameGrid game
+      foundWord = findWord grid word
+      newGame = case foundWord of
+        Nothing -> game
+        Just cs ->
+          let words = gameWords game
+              words' = M.insert word foundWord words
+          in Game grid words'
+  in newGame
 
 gridWithCoords :: Grid Char -> Grid Cell
 gridWithCoords grid = zipWith zipRows [0..] grid
