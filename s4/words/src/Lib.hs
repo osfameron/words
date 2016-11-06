@@ -4,6 +4,7 @@ module Lib
     , score
     , totalWords
     , playWord
+    , playGame
     , Grid
     , Cell(Cell)
     , formatGrid
@@ -17,6 +18,7 @@ module Lib
     , cells2string
     ) where
 
+import System.IO
 import Data.List (isInfixOf, transpose)
 import Data.Maybe (catMaybes, listToMaybe)
 import qualified Data.Map as M
@@ -43,6 +45,7 @@ score :: Game -> Int
 score game = length $ catMaybes $ M.elems (gameWords game)
 
 playWord :: Game -> String -> Game
+playWord game word | not (M.member word (gameWords game)) = game
 playWord game word =
   let grid = gameGrid game
       foundWord = findWord grid word
@@ -54,13 +57,30 @@ playWord game word =
           in Game grid words'
   in newGame
 
+playGame game = do
+  let grid = gameGrid game
+      words = gameWords game
+      s = score game
+      t = totalWords game
+  putStrLn ((show s) ++ "/" ++ (show t))
+  if s < t then do
+    putStr (formatGrid grid)
+    putStr "Enter a word> "
+    word <- getLine
+    let newGame = playWord game word
+    playGame newGame
+  else
+    putStrLn "Congratulations!"
+
 gridWithCoords :: Grid Char -> Grid Cell
 gridWithCoords grid = zipWith zipRows [0..] grid
   where zipRows y row = zipWith (zipRow y) [0..] row
         zipRow y x char = Cell (y, x) char
 
-formatGrid :: Grid Char -> String
-formatGrid = unlines
+formatGrid :: Grid Cell -> String
+formatGrid grid =
+  let charGrid = map (map cell2char) grid
+  in unlines charGrid
 
 findWords :: Grid Cell -> [String] -> [[Cell]]
 findWords grid words =
