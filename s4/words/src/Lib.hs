@@ -13,7 +13,9 @@ formatGrid :: Grid -> String
 formatGrid = unlines
 
 findWord :: Grid -> String -> Bool
-findWord grid word = or $ map (findWordInLine word) grid
+findWord grid word =
+  let lines = grid ++ (map reverse grid)
+  in or $ map (findWordInLine word) lines
 
 findWordInLine :: String -> String -> Bool
 -- findWordInLine word line = word `isInfixOf` line
