@@ -9,14 +9,15 @@ module Lib
     , gridWithCoords
     , findWordInCellInfix
     , findWordInCellPrefix
+    , cells2string
     ) where
 
 import Data.List (isInfixOf, transpose)
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, listToMaybe)
 
 type Grid a = [[a]]
 
-data Cell = Cell (Int, Int) Char
+data Cell = Cell (Int, Int) Char | Empty
             deriving (Eq, Ord, Show)
 
 gridWithCoords :: Grid Char -> Grid Cell
@@ -27,19 +28,19 @@ gridWithCoords grid = zipWith zipRows [0..] grid
 formatGrid :: Grid Char -> String
 formatGrid = unlines
 
-findWords :: Grid Char -> [String] -> [String]
+findWords :: Grid Cell -> [String] -> [[Cell]]
 findWords grid words =
   let findWord' = findWord grid
       foundWords = map findWord' words
   in catMaybes foundWords
 
-findWord :: Grid Char -> String -> Maybe String
+findWord :: Grid Cell -> String -> Maybe [Cell]
 findWord grid word =
   let lines = getLines grid
-      foundWord = or $ map (findWordInLine word) lines
-  in if foundWord then Just word else Nothing
+      foundWords = map (findWordInCellInfix word) lines
+  in listToMaybe (catMaybes foundWords)
 
-getLines :: Grid Char -> Grid Char
+getLines :: Grid Cell -> Grid Cell
 getLines grid =
   let horizontal = grid
       vertical = transpose horizontal
@@ -48,14 +49,14 @@ getLines grid =
       lines = horizontal ++ vertical ++ diagonal ++ diagonal'
   in lines ++ (map reverse lines)
 
-diagonalize :: Grid Char -> Grid Char
+diagonalize :: Grid Cell -> Grid Cell
 -- diagonalize grid = transpose (skew grid)
 diagonalize = transpose . skew
 
-skew :: Grid Char -> Grid Char
+skew :: Grid Cell -> Grid Cell
 skew [] = []
 skew (x:xs) = x : skew (map indent xs)
-  where indent line = '_' : line
+  where indent line = Empty : line
 
 findWordInLine :: String -> String -> Bool
 -- findWordInLine word line = word `isInfixOf` line
@@ -70,8 +71,13 @@ findWordInCellInfix word line =
        Nothing -> findWordInCellInfix word (tail line)
        Just _ -> foundWord
 
+cell2char (Cell _ c) = c
+cell2char _ = '?'
+
+cells2string = map cell2char
+
 findWordInCellPrefix :: [Cell] -> String -> [Cell] -> Maybe [Cell]
-findWordInCellPrefix acc (s:ss) (c@(Cell _ char):cs) | s == char
+findWordInCellPrefix acc (s:ss) (c:cs) | s == cell2char c
                                   = findWordInCellPrefix (c : acc) ss cs
 findWordInCellPrefix acc []     _ = Just (reverse acc)
 findWordInCellPrefix _    _     _ = Nothing

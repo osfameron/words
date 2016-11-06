@@ -1,6 +1,9 @@
 import Test.Hspec
 import Lib
 import Data
+import Data.Maybe
+
+grid' = gridWithCoords grid
 
 main :: IO ()
 main = hspec $ do
@@ -9,11 +12,17 @@ main = hspec $ do
       formatGrid ["abc", "def", "ghi"] `shouldBe` "abc\ndef\nghi\n"
 
   describe "findWord" $ do
-    it "finds a word on the grid" $ do
-      findWord grid "HASKELL" `shouldBe` Just "HASKELL"
-      findWord grid "PERL" `shouldBe` Just "PERL"
-      findWord grid "FRENCH" `shouldBe` Nothing
+    it "fails to find missing words" $ do
+      testFindWord grid' "HASKELL"
+      testFindWord grid' "PERL"
+
+      findWord grid' "FRENCH" `shouldBe` Nothing
 
   describe "findWords" $ do
     it "should find all the words in word-list" $ do
-      findWords grid languages `shouldBe` languages
+      let found = findWords grid' languages
+      map cells2string found `shouldBe` languages
+
+testFindWord grid word = do
+  let found = fromJust (findWord grid word)
+  cells2string found `shouldBe` word
