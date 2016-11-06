@@ -7,6 +7,8 @@ module Lib
     , getLines
     , Cell(Cell)
     , gridWithCoords
+    , findWordInCellInfix
+    , findWordInCellPrefix
     ) where
 
 import Data.List (isInfixOf, transpose)
@@ -59,3 +61,17 @@ findWordInLine :: String -> String -> Bool
 -- findWordInLine word line = word `isInfixOf` line
 -- findWordInLine word line = isInfixOf word line
 findWordInLine = isInfixOf
+
+findWordInCellInfix :: String -> [Cell] -> Maybe [Cell]
+findWordInCellInfix _ [] = Nothing
+findWordInCellInfix word line =
+  let foundWord = findWordInCellPrefix [] word line
+  in case foundWord of
+       Nothing -> findWordInCellInfix word (tail line)
+       Just _ -> foundWord
+
+findWordInCellPrefix :: [Cell] -> String -> [Cell] -> Maybe [Cell]
+findWordInCellPrefix acc (s:ss) (c@(Cell _ char):cs) | s == char
+                                  = findWordInCellPrefix (c : acc) ss cs
+findWordInCellPrefix acc []     _ = Just (reverse acc)
+findWordInCellPrefix _    _     _ = Nothing
