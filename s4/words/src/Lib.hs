@@ -62,6 +62,7 @@ playGame game = do
       words = gameWords game
       s = score game
       t = totalWords game
+  hSetBuffering stdout NoBuffering
   putStrLn ((show s) ++ "/" ++ (show t))
   if s < t then do
     putStr (formatGrid grid)
