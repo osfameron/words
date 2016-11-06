@@ -13,7 +13,7 @@ formatGrid :: Grid -> String
 formatGrid = unlines
 
 findWord :: Grid -> String -> Bool
-findWord = undefined
+findWord grid word = or $ map (findWordInLine word) grid
 
 findWordInLine :: String -> String -> Bool
 -- findWordInLine word line = word `isInfixOf` line
