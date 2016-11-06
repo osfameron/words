@@ -4,9 +4,10 @@ module Lib
     , findWord
     , findWordInLine
     , findWords
+    , getLines
     ) where
 
-import Data.List (isInfixOf)
+import Data.List (isInfixOf, transpose)
 import Data.Maybe (catMaybes)
 
 type Grid = [String]
@@ -22,9 +23,27 @@ findWords grid words =
 
 findWord :: Grid -> String -> Maybe String
 findWord grid word =
-  let lines = grid ++ (map reverse grid)
+  let lines = getLines grid
       foundWord = or $ map (findWordInLine word) lines
   in if foundWord then Just word else Nothing
+
+getLines :: Grid -> [String]
+getLines grid =
+  let horizontal = grid
+      vertical = transpose horizontal
+      diagonal = diagonalize horizontal
+      diagonal' = diagonalize (map reverse horizontal)
+      lines = horizontal ++ vertical ++ diagonal ++ diagonal'
+  in lines ++ (map reverse lines)
+
+diagonalize :: Grid -> Grid
+-- diagonalize grid = transpose (skew grid)
+diagonalize = transpose . skew
+
+skew :: Grid -> Grid
+skew [] = []
+skew (x:xs) = x : skew (map indent xs)
+  where indent line = '_' : line
 
 findWordInLine :: String -> String -> Bool
 -- findWordInLine word line = word `isInfixOf` line
