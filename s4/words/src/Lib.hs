@@ -16,9 +16,13 @@ module Lib
     , findWordInCellInfix
     , findWordInCellPrefix
     , cells2string
+    , fillInBlanks
+    , zipOverGrid
+    , makeRandomGrid
     ) where
 
 import System.IO
+import System.Random
 import Data.List (isInfixOf, transpose)
 import Data.Maybe (catMaybes, listToMaybe)
 import qualified Data.Map as M
@@ -37,6 +41,22 @@ makeGame grid words =
   let grid'  = gridWithCoords grid
       words' = M.fromList $ map (\word -> (word, Nothing)) words
   in Game grid' words'
+
+-- fillInBlanks :: RandomGen g => g -> Grid Char -> Grid Char
+fillInBlanks g grid = zipOverGridWith fillIn grid (makeRandomGrid g)
+  where fillIn '_' c = c
+        fillIn  c  _ = c
+
+zipOverGrid = zipWith zip
+zipOverGridWith f = zipWith (zipWith f)
+-- zipOverGridWith = zipWith . zipWith
+
+makeRandomGrid g =
+  let (g1, g2) = split g
+      row = randomRs ('A','Z') g1
+  in row : makeRandomGrid g2
+
+
 
 totalWords :: Game -> Int
 totalWords game = length $ M.keys (gameWords game)
@@ -58,7 +78,8 @@ playWord game word =
   in newGame
 
 playGame game = do
-  let grid = gameGrid game
+  let 
+      grid = gameGrid game
       words = gameWords game
       s = score game
       t = totalWords game

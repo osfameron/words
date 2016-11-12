@@ -2,9 +2,13 @@ module Main where
 
 import Lib
 import Data
-
-g = makeGame grid languages
+import System.Random
 
 main :: IO ()
-main = playGame g
+main = do
+  gen <- newStdGen
+  let grid' = fillInBlanks gen grid
+      game = makeGame grid' languages
+  playGame game
+
 
