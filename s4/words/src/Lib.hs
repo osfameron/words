@@ -8,6 +8,7 @@ module Lib
     , Grid
     , Cell(Cell)
     , formatGrid
+    , formatGameGrid
     , findWord
     , findWordInLine
     , findWords
@@ -19,10 +20,12 @@ module Lib
     , fillInBlanks
     , zipOverGrid
     , makeRandomGrid
+    , cellSet
     ) where
 
 import System.IO
 import System.Random
+import Data.Char (toLower)
 import Data.List (isInfixOf, transpose)
 import Data.Maybe (catMaybes, listToMaybe)
 import qualified Data.Map as M
@@ -41,6 +44,9 @@ makeGame grid words =
   let grid'  = gridWithCoords grid
       words' = M.fromList $ map (\word -> (word, Nothing)) words
   in Game grid' words'
+
+cellSet :: Game -> [Cell]
+cellSet game = concat . catMaybes . M.elems $ gameWords game
 
 -- fillInBlanks :: RandomGen g => g -> Grid Char -> Grid Char
 fillInBlanks g grid = zipOverGridWith fillIn grid (makeRandomGrid g)
@@ -86,7 +92,7 @@ playGame game = do
   hSetBuffering stdout NoBuffering
   putStrLn ((show s) ++ "/" ++ (show t))
   if s < t then do
-    putStr (formatGrid grid)
+    putStr (formatGameGrid game)
     putStr "Enter a word> "
     word <- getLine
     let newGame = playWord game word
@@ -103,6 +109,18 @@ formatGrid :: Grid Cell -> String
 formatGrid grid =
   let charGrid = map (map cell2char) grid
   in unlines charGrid
+
+formatGameGrid :: Game -> String
+formatGameGrid game =
+  let grid = gameGrid game
+      cells = cellSet game
+      charGrid = map (map (cell2char' cells)) grid
+  in unlines charGrid
+
+cell2char' cells cell =
+  let char = cell2char cell
+      found = cell `elem` cells
+  in if found then char else toLower char
 
 findWords :: Grid Cell -> [String] -> [[Cell]]
 findWords grid words =
